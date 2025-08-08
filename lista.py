@@ -46,8 +46,9 @@ st.success(f"VENTAS TOTALES DEL PERIODO: {total_anual:,.2f} SOLES")
 st.markdown("---")
 
 # 6. Etiquetas de meses
+# LÍNEA CORREGIDA A CONTINUACIÓN
 nombres_meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                 'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre']
+                 'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
 etiquetas_personalizadas = []
 for fecha in ventas_mensuales[columna_fecha]:
