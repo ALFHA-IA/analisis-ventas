@@ -1,12 +1,16 @@
 import pandas as pd
 import plotly.express as px
+import streamlit as st
+
+# Título de la aplicación
+st.title('Dashboard de Ventas')
 
 # 1. Cargar el archivo CSV
 try:
     df = pd.read_csv('Lista_Ventas_Detalle.csv', encoding='latin1', header=1)
 except FileNotFoundError:
-    print("Error: El archivo 'Lista_Ventas_Detalle.csv' no fue encontrado.")
-    exit()
+    st.error("Error: El archivo 'Lista_Ventas_Detalle.csv' no fue encontrado.")
+    st.stop()
 
 # 2. Definir las columnas clave
 columna_fecha = 'FECHA'
@@ -27,23 +31,23 @@ fecha_fin = '2025-07-31'
 df_filtrado = df[(df[columna_fecha] >= fecha_inicio) & (df[columna_fecha] <= fecha_fin)].copy()
 
 if df_filtrado.empty:
-    print("No se encontraron datos de ventas en el rango de fechas especificado.")
-    exit()
+    st.warning("No se encontraron datos de ventas en el rango de fechas especificado.")
+    st.stop()
 
 # 5. Total mensual y anual
+st.header("Reporte de Ventas Mensuales")
 ventas_mensuales = df_filtrado.resample('MS', on=columna_fecha)[columna_importe].sum().fillna(0).reset_index()
 ventas_mensuales['FECHA_STR'] = ventas_mensuales[columna_fecha].dt.strftime('%Y-%m')
 total_anual = df_filtrado[columna_importe].sum()
 
-print("--- Reporte de Ventas Mensuales (Julio 2024 - Julio 2025) ---")
-print(ventas_mensuales.to_string())
-print("\n" + "-"*50)
-print(f"VENTAS TOTALES DEL PERIODO: {total_anual:,.2f} SOLES")
-print("-" * 50)
+st.dataframe(ventas_mensuales)
+st.markdown("---")
+st.success(f"VENTAS TOTALES DEL PERIODO: {total_anual:,.2f} SOLES")
+st.markdown("---")
 
 # 6. Etiquetas de meses
 nombres_meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                 'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre']
+                 'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
 etiquetas_personalizadas = []
 for fecha in ventas_mensuales[columna_fecha]:
@@ -60,7 +64,7 @@ fig1 = px.line(ventas_mensuales, x='FECHA_STR', y=columna_importe,
                title='Tendencia de Ventas Mensuales (Julio 2024 - Julio 2025)', markers=True)
 fig1.update_xaxes(title_text='Mes', tickmode='array', tickvals=ventas_mensuales['FECHA_STR'], ticktext=etiquetas_personalizadas)
 fig1.update_yaxes(title_text='Total de Ventas (Soles)')
-fig1.show()
+st.plotly_chart(fig1)
 
 # 8. Gráfico por producto individual mensual (líneas gruesas)
 ventas_todos_productos_mensuales = df_filtrado.pivot_table(
@@ -79,7 +83,7 @@ fig2 = px.line(ventas_todos_productos_mensuales, x=columna_fecha, y=columna_impo
 fig2.update_traces(line=dict(width=4))
 fig2.update_xaxes(title_text='Mes')
 fig2.update_yaxes(title_text='Total de Ventas (Soles)')
-fig2.show()
+st.plotly_chart(fig2)
 
 # 9. Clasificación de productos
 ventas_totales_por_producto = df_filtrado.groupby(columna_articulos)[columna_cantidad].sum().sort_values(ascending=False).reset_index()
@@ -136,9 +140,7 @@ fig3.update_layout(
     showlegend=True
 )
 fig3.update_yaxes(autorange='reversed')
-fig3.show()
-
-# La sección del código que generaba y mostraba la figura 4 ha sido eliminada.
+st.plotly_chart(fig3)
 
 # 11. Gráfico de barras por MES, CATEGORÍA y PRODUCTO con hover interactivo
 # Agrupar por MES, PRODUCTO y CATEGORÍA
@@ -179,5 +181,4 @@ fig5.update_layout(
     legend_title='Categoría'
 )
 
-# Mostrar el gráfico
-fig5.show()
+st.plotly_chart(fig5)
